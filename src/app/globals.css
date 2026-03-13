@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-oscar-gold: #C5A54E;
+  --color-oscar-gold-light: #D4B96A;
+  --color-oscar-gold-dark: #A88B3D;
+  --color-oscar-black: #1A1A1A;
+  --color-oscar-bg: #0D0D0D;
+  --color-oscar-red: #B22234;
+  --color-oscar-red-light: #CC3344;
+  --color-oscar-card: rgba(255, 255, 255, 0.05);
+  --color-oscar-card-hover: rgba(255, 255, 255, 0.08);
+  --color-oscar-border: rgba(197, 165, 78, 0.3);
+  --color-oscar-text: #F5F5F5;
+  --color-oscar-text-muted: #999999;
+}
+
+body {
+  background: linear-gradient(180deg, #0D0D0D 0%, #1A1A1A 100%);
+  color: #F5F5F5;
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes trophy-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-confetti {
+  animation: confetti-fall 3s ease-in-out forwards;
+}
+
+.animate-trophy {
+  animation: trophy-bounce 0.6s ease-in-out;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+
+.gold-shimmer {
+  background: linear-gradient(90deg, #C5A54E 0%, #D4B96A 50%, #C5A54E 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
