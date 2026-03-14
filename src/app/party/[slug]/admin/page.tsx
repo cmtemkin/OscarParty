@@ -7,17 +7,17 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
-import { CATEGORIES } from "@/data/nominees";
-
-interface WinnerData {
-  categoryId: string;
-  nomineeId: string;
-}
 
 interface PartyInfo {
   name: string;
   guestCount: number;
   winnersMarked: number;
+}
+
+interface GuestData {
+  guestId: string;
+  guestName: string;
+  score: number;
 }
 
 export default function AdminPage() {
@@ -29,10 +29,9 @@ export default function AdminPage() {
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [partyInfo, setPartyInfo] = useState<PartyInfo | null>(null);
-  const [winners, setWinners] = useState<WinnerData[]>([]);
-  const [markingCategory, setMarkingCategory] = useState<string | null>(null);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [guests, setGuests] = useState<GuestData[]>([]);
   const [copied, setCopied] = useState(false);
+  const [copiedAdmin, setCopiedAdmin] = useState(false);
 
   const fetchPartyInfo = useCallback(async () => {
     const res = await fetch(`/api/parties/${slug}`);
@@ -42,26 +41,20 @@ export default function AdminPage() {
     }
   }, [slug]);
 
-  const fetchWinners = useCallback(async () => {
-    const res = await fetch(`/api/parties/${slug}/admin/winners`);
+  const fetchLeaderboard = useCallback(async () => {
+    const res = await fetch(`/api/parties/${slug}/leaderboard`);
     if (res.ok) {
       const data = await res.json();
-      setWinners(data.winners);
+      setGuests(data.leaderboard || []);
     }
   }, [slug]);
 
   useEffect(() => {
     if (authenticated) {
       fetchPartyInfo();
-      fetchWinners();
-      // Poll every 10 seconds
-      const interval = setInterval(() => {
-        fetchPartyInfo();
-        fetchWinners();
-      }, 10000);
-      return () => clearInterval(interval);
+      fetchLeaderboard();
     }
-  }, [authenticated, fetchPartyInfo, fetchWinners]);
+  }, [authenticated, fetchPartyInfo, fetchLeaderboard]);
 
   async function handleAuth(e: React.FormEvent) {
     e.preventDefault();
@@ -88,39 +81,6 @@ export default function AdminPage() {
     }
   }
 
-  async function markWinner(categoryId: string, nomineeId: string) {
-    setMarkingCategory(categoryId);
-    try {
-      const res = await fetch(`/api/parties/${slug}/admin/winners`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ categoryId, nomineeId }),
-      });
-
-      if (res.ok) {
-        setWinners((prev) => {
-          const filtered = prev.filter((w) => w.categoryId !== categoryId);
-          return [...filtered, { categoryId, nomineeId }];
-        });
-        fetchPartyInfo();
-      }
-    } finally {
-      setMarkingCategory(null);
-    }
-  }
-
-  async function resetWinners() {
-    const res = await fetch(`/api/parties/${slug}/admin/winners`, {
-      method: "DELETE",
-    });
-
-    if (res.ok) {
-      setWinners([]);
-      setShowResetConfirm(false);
-      fetchPartyInfo();
-    }
-  }
-
   async function exportCSV() {
     const res = await fetch(`/api/parties/${slug}/admin/export`);
     if (res.ok) {
@@ -141,6 +101,13 @@ export default function AdminPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  function copyAdminLink() {
+    const url = `${window.location.origin}/party/${slug}/admin`;
+    navigator.clipboard.writeText(url);
+    setCopiedAdmin(true);
+    setTimeout(() => setCopiedAdmin(false), 2000);
+  }
+
   // Password gate
   if (!authenticated) {
     return (
@@ -151,7 +118,7 @@ export default function AdminPage() {
             <div className="text-center mb-6">
               <span className="text-4xl block mb-2">🔐</span>
               <h1 className="text-2xl font-bold text-oscar-gold">
-                Admin Dashboard
+                Party Admin
               </h1>
               <p className="text-sm text-oscar-text-muted mt-1">
                 Enter the admin password to continue
@@ -179,8 +146,6 @@ export default function AdminPage() {
     );
   }
 
-  const winnersMap = new Map(winners.map((w) => [w.categoryId, w.nomineeId]));
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -192,102 +157,60 @@ export default function AdminPage() {
               {partyInfo?.name || "Loading..."}
             </h1>
             <p className="text-oscar-text-muted">
-              {partyInfo?.guestCount || 0} guests &middot;{" "}
-              {winners.length} of {CATEGORIES.length} winners marked
+              {partyInfo?.guestCount || 0} guests
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button variant="secondary" onClick={copyPartyLink}>
-              {copied ? "Copied!" : "Copy Party Link"}
+              {copied ? "Copied!" : "Copy Invite Link"}
+            </Button>
+            <Button variant="secondary" onClick={copyAdminLink}>
+              {copiedAdmin ? "Copied!" : "Copy Admin Link"}
             </Button>
             <Button variant="secondary" onClick={exportCSV}>
               Export CSV
             </Button>
-            <Button
-              variant="danger"
-              onClick={() => setShowResetConfirm(true)}
-            >
-              Reset Winners
-            </Button>
           </div>
         </div>
 
-        {/* Reset confirmation */}
-        {showResetConfirm && (
-          <Card className="mb-6 border-oscar-red">
-            <p className="text-oscar-text mb-3">
-              Are you sure you want to reset all winners? This will clear the
-              leaderboard scores.
+        {/* Guest list */}
+        <h2 className="text-lg font-bold text-oscar-text mb-4">
+          Guests ({guests.length})
+        </h2>
+
+        {guests.length === 0 ? (
+          <Card className="text-center">
+            <p className="text-oscar-text-muted">
+              No guests have submitted picks yet. Share the invite link to get
+              started!
             </p>
-            <div className="flex gap-2">
-              <Button variant="danger" onClick={resetWinners}>
-                Yes, Reset All
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setShowResetConfirm(false)}
-              >
-                Cancel
-              </Button>
-            </div>
           </Card>
+        ) : (
+          <div className="space-y-2">
+            {guests.map((guest) => (
+              <Card
+                key={guest.guestId}
+                className="flex items-center justify-between"
+              >
+                <span className="font-medium text-oscar-text">
+                  {guest.guestName}
+                </span>
+                <span className="text-oscar-text-muted text-sm">
+                  {guest.score} correct
+                </span>
+              </Card>
+            ))}
+          </div>
         )}
 
-        {/* Categories + winner selection */}
-        <div className="space-y-3">
-          {CATEGORIES.map((category) => {
-            const currentWinner = winnersMap.get(category.id);
-            const winnerNominee = currentWinner
-              ? category.nominees.find((n) => n.id === currentWinner)
-              : null;
-            const isMarking = markingCategory === category.id;
-
-            return (
-              <Card
-                key={category.id}
-                gold={!!currentWinner}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-oscar-text">
-                      {category.name}
-                    </h3>
-                    {winnerNominee && (
-                      <p className="text-oscar-gold text-sm mt-1">
-                        Winner:{" "}
-                        {winnerNominee.detail
-                          ? `${winnerNominee.detail} — ${winnerNominee.name}`
-                          : winnerNominee.name}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex-shrink-0">
-                    <select
-                      className="bg-oscar-black border border-oscar-border rounded-lg px-3 py-2 text-oscar-text text-sm w-full sm:w-64 cursor-pointer"
-                      value={currentWinner || ""}
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          markWinner(category.id, e.target.value);
-                        }
-                      }}
-                      disabled={isMarking}
-                    >
-                      <option value="">
-                        {isMarking ? "Marking..." : "Select winner..."}
-                      </option>
-                      {category.nominees.map((nominee) => (
-                        <option key={nominee.id} value={nominee.id}>
-                          {nominee.detail
-                            ? `${nominee.detail} — ${nominee.name}`
-                            : nominee.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
+        {/* Leaderboard link */}
+        <div className="mt-8 text-center">
+          <a
+            href={`/party/${slug}/leaderboard`}
+            className="text-oscar-gold hover:underline"
+          >
+            View Live Leaderboard →
+          </a>
         </div>
       </main>
       <Footer />

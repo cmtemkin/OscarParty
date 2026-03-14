@@ -32,6 +32,13 @@ export interface Winner {
   markedAt: Date;
 }
 
+export interface GlobalWinner {
+  id: string;
+  categoryId: string;
+  nomineeId: string;
+  markedAt: Date;
+}
+
 export interface LeaderboardEntry {
   guestId: string;
   guestName: string;

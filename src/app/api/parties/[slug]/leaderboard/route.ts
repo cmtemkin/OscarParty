@@ -3,7 +3,7 @@ import {
   getPartyBySlug,
   getGuestsByPartyId,
   getPicksByPartyId,
-  getWinnersByPartyId,
+  getGlobalWinners,
 } from "@/lib/store";
 import { TOTAL_CATEGORIES } from "@/data/nominees";
 
@@ -20,7 +20,7 @@ export async function GET(
 
   const guests = await getGuestsByPartyId(party.id);
   const picks = await getPicksByPartyId(party.id);
-  const winners = await getWinnersByPartyId(party.id);
+  const winners = await getGlobalWinners();
 
   const winnerMap = new Map(winners.map((w) => [w.categoryId, w.nomineeId]));
 

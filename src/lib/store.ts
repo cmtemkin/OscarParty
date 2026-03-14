@@ -1,5 +1,5 @@
 import { getSupabase } from "./supabase";
-import { Party, Guest, Pick, Winner } from "./types";
+import { Party, Guest, Pick, Winner, GlobalWinner } from "./types";
 
 const supabase = () => getSupabase();
 
@@ -187,4 +187,79 @@ export async function deleteWinnersByPartyId(partyId: string): Promise<void> {
     .delete()
     .eq("party_id", partyId);
   if (error) throw new Error(error.message);
+}
+
+// --- Global Winners ---
+
+export async function upsertGlobalWinner(winner: GlobalWinner): Promise<GlobalWinner> {
+  const { error } = await supabase().from("global_winners").upsert(
+    {
+      id: winner.id,
+      category_id: winner.categoryId,
+      nominee_id: winner.nomineeId,
+    },
+    { onConflict: "category_id" }
+  );
+  if (error) throw new Error(error.message);
+  return winner;
+}
+
+export async function getGlobalWinners(): Promise<GlobalWinner[]> {
+  const { data } = await supabase().from("global_winners").select("*");
+  return (data || []).map((d) => ({
+    id: d.id,
+    categoryId: d.category_id,
+    nomineeId: d.nominee_id,
+    markedAt: new Date(d.marked_at),
+  }));
+}
+
+export async function deleteGlobalWinners(): Promise<void> {
+  const { error } = await supabase()
+    .from("global_winners")
+    .delete()
+    .gte("id", "00000000-0000-0000-0000-000000000000");
+  if (error) throw new Error(error.message);
+}
+
+// --- Party Management (System Admin) ---
+
+export async function getAllParties(): Promise<Party[]> {
+  const { data } = await supabase()
+    .from("parties")
+    .select("*")
+    .order("created_at", { ascending: false });
+  return (data || []).map((d) => ({
+    id: d.id,
+    name: d.name,
+    slug: d.slug,
+    adminPasswordHash: d.admin_password_hash,
+    ceremonyLocked: d.ceremony_locked,
+    isActive: d.is_active,
+    createdAt: new Date(d.created_at),
+  }));
+}
+
+export async function deleteParty(partyId: string): Promise<void> {
+  const { error } = await supabase()
+    .from("parties")
+    .delete()
+    .eq("id", partyId);
+  if (error) throw new Error(error.message);
+}
+
+export async function updatePartySlug(partyId: string, newSlug: string): Promise<void> {
+  const { error } = await supabase()
+    .from("parties")
+    .update({ slug: newSlug })
+    .eq("id", partyId);
+  if (error) throw new Error(error.message);
+}
+
+export async function getGuestCountByPartyId(partyId: string): Promise<number> {
+  const { count } = await supabase()
+    .from("guests")
+    .select("*", { count: "exact", head: true })
+    .eq("party_id", partyId);
+  return count || 0;
 }
