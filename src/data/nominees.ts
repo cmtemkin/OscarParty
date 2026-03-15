@@ -340,14 +340,24 @@ export const CATEGORIES: Category[] = [
     name: "Best Original Song",
     nominees: [
       {
-        id: "i-lied-to-you-sinners",
-        name: '"I Lied to You"',
-        detail: "Sinners",
+        id: "dear-me-relentless",
+        name: '"Dear Me"',
+        detail: "Diane Warren: Relentless",
       },
       {
         id: "golden-kpop",
         name: '"Golden"',
         detail: "KPop Demon Hunters",
+      },
+      {
+        id: "i-lied-to-you-sinners",
+        name: '"I Lied to You"',
+        detail: "Sinners",
+      },
+      {
+        id: "sweet-dreams-viva-verdi",
+        name: '"Sweet Dreams Of Joy"',
+        detail: "Viva Verdi!",
       },
       {
         id: "train-dreams-song",
@@ -419,16 +429,20 @@ export const CATEGORIES: Category[] = [
     name: "Best Sound",
     nominees: [
       { id: "sound-f1", name: "F1" },
-      { id: "sound-sinners", name: "Sinners" },
-      { id: "sound-one-battle", name: "One Battle After Another" },
       { id: "sound-frankenstein", name: "Frankenstein" },
+      { id: "sound-one-battle", name: "One Battle After Another" },
+      { id: "sound-sinners", name: "Sinners" },
+      { id: "sound-sirat", name: "Sirat" },
     ],
   },
   {
     id: "best-visual-effects",
     name: "Best Visual Effects",
     nominees: [
+      { id: "vfx-avatar", name: "Avatar: Fire and Ash" },
       { id: "vfx-f1", name: "F1" },
+      { id: "vfx-jurassic-world", name: "Jurassic World Rebirth" },
+      { id: "vfx-lost-bus", name: "The Lost Bus" },
       { id: "vfx-sinners", name: "Sinners" },
     ],
   },
@@ -437,8 +451,10 @@ export const CATEGORIES: Category[] = [
     name: "Best Animated Short Film",
     nominees: [
       { id: "butterfly", name: "Butterfly" },
-      { id: "retirement-plan", name: "Retirement Plan" },
       { id: "forevergreen", name: "Forevergreen" },
+      { id: "girl-who-cried-pearls", name: "The Girl Who Cried Pearls" },
+      { id: "retirement-plan", name: "Retirement Plan" },
+      { id: "three-sisters", name: "The Three Sisters" },
     ],
   },
   {
